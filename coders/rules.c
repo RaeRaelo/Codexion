@@ -6,7 +6,7 @@
 /*   By: a.. <adahadda@student.1337.ma>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/20 12:00:00 by a                 #+#    #+#             */
-/*   Updated: 2026/04/20 13:43:20 by a..              ###   ########.fr       */
+/*   Updated: 2026/04/25 12:00:00 by a..              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,7 @@
 #include <string.h>
 #include "codexion.h"
 
-
-// validate_numeric_args: Checks if first 7 args are numeric
+/* validate_numeric_args: Checks if first 7 args are non-negative integers */
 int	validate_numeric_args(char **argv)
 {
 	int	i;
@@ -30,7 +29,7 @@ int	validate_numeric_args(char **argv)
 	return (0);
 }
 
-// validate_scheduler: Checks if scheduler is "fifo" or "edf"
+/* validate_scheduler: Checks if scheduler is "fifo" or "edf" */
 int	validate_scheduler(char *scheduler)
 {
 	if (strcmp(scheduler, "fifo") != 0 && strcmp(scheduler, "edf") != 0)
@@ -38,23 +37,29 @@ int	validate_scheduler(char *scheduler)
 	return (0);
 }
 
-// assign_rules: Assigns values from argv to rules struct
+/* assign_rules: Assigns values from argv to rules struct */
 void	assign_rules(t_rules *rules, char **argv)
 {
-	rules->number_of_coders = atoll(argv[1]);
-	rules->time_to_burnout = atoll(argv[2]);
-	rules->time_to_compile = atoll(argv[3]);
-	rules->time_to_debug = atoll(argv[4]);
-	rules->time_to_refactor = atoll(argv[5]);
-	rules->number_of_compiles_required = atoll(argv[6]);
-	rules->dongle_cooldown = atoll(argv[7]);
+	rules->number_of_coders = ft_atoll(argv[1]);
+	rules->time_to_burnout = ft_atoll(argv[2]);
+	rules->time_to_compile = ft_atoll(argv[3]);
+	rules->time_to_debug = ft_atoll(argv[4]);
+	rules->time_to_refactor = ft_atoll(argv[5]);
+	rules->number_of_compiles_required = ft_atoll(argv[6]);
+	rules->dongle_cooldown = ft_atoll(argv[7]);
 	rules->scheduler = argv[8];
 }
 
-// validate_rules_limits: Checks if values exceed INT_MAX
+/*
+** validate_rules_limits: Rejects values that exceed INT_MAX or are zero
+** where a positive value is required.
+** FIX: number_of_coders == 0 is now explicitly rejected to prevent
+** malloc(0) and downstream undefined behaviour.
+*/
 int	validate_rules_limits(t_rules *rules)
 {
-	if (rules->number_of_coders > 2147483647LL
+	if (rules->number_of_coders < 1
+		|| rules->number_of_coders > 2147483647LL
 		|| rules->time_to_burnout > 2147483647LL
 		|| rules->time_to_compile > 2147483647LL
 		|| rules->time_to_debug > 2147483647LL
@@ -65,7 +70,7 @@ int	validate_rules_limits(t_rules *rules)
 	return (0);
 }
 
-// init_rules: Parses command-line arguments into t_rules structure
+/* init_rules: Parses command-line arguments into t_rules structure */
 int	init_rules(t_rules *rules, char **argv)
 {
 	if (validate_numeric_args(argv) == 1)

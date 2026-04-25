@@ -1,10 +1,10 @@
 NAME = codexion
 
-SRC = main.c rules.c table.c coder.c monitor.c utils.c helpers.c
+SRC = main.c rules.c table.c coder.c monitor.c utils.c helpers.c heap.c
 
 OBJ = $(SRC:.c=.o)
 
-CC = gcc
+CC = cc
 
 CFLAGS = -Wall -Wextra -Werror -pthread
 

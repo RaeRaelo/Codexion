@@ -6,7 +6,7 @@
 /*   By: a.. <adahadda@student.1337.ma>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/20 12:00:00 by a                 #+#    #+#             */
-/*   Updated: 2026/04/20 13:42:25 by a..              ###   ########.fr       */
+/*   Updated: 2026/04/25 12:00:00 by a..              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ static int	init_coders(t_table *table, t_rules *rules)
 		table->coders[i].rules = rules;
 		table->coders[i].dongles = table->dongles;
 		table->coders[i].table = table;
-		table->coders[i].state = 0;
 		pthread_mutex_init(&table->dongles[i], NULL);
 		pthread_mutex_init(&table->coders[i].meal_lock, NULL);
 		i++;
@@ -34,29 +33,60 @@ static int	init_coders(t_table *table, t_rules *rules)
 	return (0);
 }
 
-int	init_table(t_table *table, t_rules *rules)
+static int	alloc_table(t_table *table, t_rules *rules)
 {
 	table->coders = malloc(rules->number_of_coders * sizeof(t_coder));
 	table->dongles = malloc(rules->number_of_coders * sizeof(pthread_mutex_t));
-	if (!(table->dongles) || !(table->coders))
+	table->heap.data = malloc(rules->number_of_coders * sizeof(t_request));
+	table->dongle_ready_time = malloc(rules->number_of_coders
+			* sizeof(long long));
+	table->state = malloc(rules->number_of_coders * sizeof(int));
+	if (!table->coders || !table->dongles || !table->heap.data
+		|| !table->dongle_ready_time || !table->state)
+	{
+		free(table->coders);
+		free(table->dongles);
+		free(table->heap.data);
+		free(table->dongle_ready_time);
+		free(table->state);
 		return (1);
+	}
+	return (0);
+}
+
+static void	setup_table(t_table *table, t_rules *rules)
+{
+	int	i;
+
+	i = -1;
+	while (++i < rules->number_of_coders)
+	{
+		table->dongle_ready_time[i] = 0;
+		table->state[i] = 0;
+	}
 	pthread_mutex_init(&table->write_lock, NULL);
 	pthread_cond_init(&table->intercom, NULL);
 	pthread_mutex_init(&table->table_lock, NULL);
+	pthread_mutex_init(&table->time_lock, NULL);
 	table->ticket_dispenser = 0;
-	table->now_serving = 0;
+	table->heap.size = 0;
 	table->simulation_dead = 0;
 	table->rules = rules;
-	table->simulated_time = 0;
-	pthread_mutex_init(&table->time_lock, NULL);
+}
+
+int	init_table(t_table *table, t_rules *rules)
+{
+	if (alloc_table(table, rules) == 1)
+		return (1);
+	setup_table(table, rules);
 	init_coders(table, rules);
 	return (0);
 }
 
 int	start_simulation(t_table *table)
 {
-	long long		i;
-	pthread_t		monitor_thread;
+	long long	i;
+	pthread_t	monitor_thread;
 
 	i = 0;
 	table->start_time = get_current_time(NULL);

@@ -5,59 +5,68 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: a.. <adahadda@student.1337.ma>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/20 13:41:38 by a..               #+#    #+#             */
-/*   Updated: 2026/04/20 13:41:39 by a..              ###   ########.fr       */
+/*   Created: 2026/04/25 00:39:45 by a..               #+#    #+#             */
+/*   Updated: 2026/04/25 12:00:00 by a..              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
-
 #include "codexion.h"
 
-static int	is_neighbor_dying(t_coder *me, int n_idx, long long curr_time)
+long long int	ft_atoll(char *str)
 {
-	long long	my_clock;
-	long long	th_clock;
-	t_coder		*n;
+	int			i;
+	long long	nbr;
 
-	n = &me->table->coders[n_idx];
-	if (n->state == 0)
-		return (0);
-	if (n->state == 2)
-		return (1);
-	my_clock = me->rules->time_to_burnout
-		- (curr_time - me->last_compile_start);
-	th_clock = me->rules->time_to_burnout
-		- (curr_time - n->last_compile_start);
-	if (th_clock < my_clock)
-		return (1);
-	if (th_clock == my_clock)
+	i = 0;
+	nbr = 0;
+	while (str[i])
 	{
-		if (n->id % 2 == 0 && me->id % 2 != 0)
-			return (1); 
-		if (n->id % 2 == me->id % 2 && n->id < me->id)
-			return (1);
+		if (str[i] >= '0' && str[i] <= '9')
+			nbr = nbr * 10 + (str[i] - '0');
+		else
+			return (2147483647LL + 1);
+		i++;
 	}
-	return (0);
+	return (nbr);
 }
 
-int	check_triage(t_coder *me)
+void	get_dongle_indices(t_coder *coder, int *f, int *s)
 {
-	int			my_idx;
-	int			left_idx;
-	int			right_idx;
-	long long	current_time;
+	*f = coder->id - 1;
+	*s = coder->id % coder->rules->number_of_coders;
+	if (coder->id % 2 != 0)
+	{
+		*f = coder->id % coder->rules->number_of_coders;
+		*s = coder->id - 1;
+	}
+}
 
-	my_idx = me->id - 1;
-	if (my_idx == 0)
-		left_idx = me->rules->number_of_coders - 1;
-	else
-		left_idx = my_idx - 1;
-	right_idx = (my_idx + 1) % me->rules->number_of_coders;
-	
-	current_time = get_current_time(me->table);
-	if (is_neighbor_dying(me, left_idx, current_time) == 1
-		|| is_neighbor_dying(me, right_idx, current_time) == 1)
-		return (1);
-	return (0);
+void	wait_cooldown(t_table *table, int d_idx)
+{
+	long long	ready;
+	long long	now;
+
+	pthread_mutex_lock(&table->time_lock);
+	ready = table->dongle_ready_time[d_idx];
+	pthread_mutex_unlock(&table->time_lock);
+	now = get_current_time(table);
+	if (now < ready)
+		simulate_sleep(ready - now, table);
+}
+
+void	post_compile_cycle(t_coder *coder)
+{
+	print_status(coder, "is debugging");
+	simulate_sleep(coder->rules->time_to_debug, coder->table);
+	print_status(coder, "is refactoring");
+	simulate_sleep(coder->rules->time_to_refactor, coder->table);
+}
+
+void	*handle_single_coder(t_coder *coder)
+{
+	pthread_mutex_lock(&coder->dongles[0]);
+	print_status(coder, "has taken a dongle");
+	simulate_sleep(coder->rules->time_to_burnout, coder->table);
+	pthread_mutex_unlock(&coder->dongles[0]);
+	return (NULL);
 }
