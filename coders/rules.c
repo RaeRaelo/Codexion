@@ -6,7 +6,7 @@
 /*   By: a.. <adahadda@student.1337.ma>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/20 12:00:00 by a                 #+#    #+#             */
-/*   Updated: 2026/04/25 12:00:00 by a..              ###   ########.fr       */
+/*   Updated: 2026/04/26 00:07:09 by a..              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ int	validate_rules_limits(t_rules *rules)
 		|| rules->time_to_debug > 2147483647LL
 		|| rules->time_to_refactor > 2147483647LL
 		|| rules->number_of_compiles_required > 2147483647LL
+		|| rules->number_of_compiles_required == 0
 		|| rules->dongle_cooldown > 2147483647LL)
 		return (1);
 	return (0);

@@ -6,7 +6,7 @@
 /*   By: a.. <adahadda@student.1337.ma>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/20 12:00:00 by a                 #+#    #+#             */
-/*   Updated: 2026/04/25 12:00:00 by a..              ###   ########.fr       */
+/*   Updated: 2026/04/26 00:05:10 by a..              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,12 +38,6 @@ void	check_coder_burnout(t_table *table, long long i)
 	pthread_mutex_unlock(&table->coders[i].meal_lock);
 }
 
-/*
-** check_completion: Checks if all coders have compiled enough times.
-** FIX: Removed the invalid "Finished" log message. The spec only allows
-** five specific messages. We now stop silently by setting simulation_dead
-** directly under write_lock, then wake waiting threads.
-*/
 void	check_completion(t_table *table, long long i,
 			long long *finished_coders)
 {
